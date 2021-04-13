@@ -172,10 +172,36 @@ const updateUI = function(acc){
   calcDisplaySummary(acc);
 }
 
+const startLogOutTimer = function(){
+  const tick = function() {
+    const min = String(Math.trunc(time / 60)).padStart(2,0);
+    const sec = String(time % 60).padStart(2,0);
+    //in each call print the remaining time to the ui
+    labelTimer.textContent = `${min}:${sec}`;
+
+    //decrease 1 second
+    
+    //when the time is at 0, stop timer and log out user
+    if(time === 0){
+      clearInterval(timer)
+      labelWelcome.textContent = `Log in to get started`;
+    containerApp.style.opacity = 0;
+  }
+
+  time--;
+  }
+  //set time to 5 mins
+  let time = 10;
+  // call timer every second
+  tick();
+  const timer = setInterval(tick, 1000);
+  return timer;
+}
+
 
 // Event handlers
 
-let currentAccount;
+let currentAccount, timer;
 
 //Fake always logged in
 // currentAccount = account1;
@@ -216,6 +242,9 @@ btnLogin.addEventListener('click', function(e){
   // Clear input fields
   inputLoginUsername.value = inputLoginPin.value = '';
 
+  if(timer) clearInterval(timer);
+  timer = startLogOutTimer();
+
   updateUI(currentAccount);
 
 });
@@ -235,6 +264,10 @@ currentAccount.movementsDates.push(new Date().toISOString());
 receiverAcc.movementsDates.push(new Date().toISOString());
 
 updateUI(currentAccount);
+
+//reset timer
+clearInterval(timer);
+timer = startLogOutTimer();
 }
 
 });
@@ -243,13 +276,17 @@ btnLoan.addEventListener('click', function(e){
   
   const amount = Math.floor(inputLoanAmount.value);
   if(amount > 0 && currentAccount.movements.some(mov => mov >= amount /10)){
-    currentAccount.movements.push(amount);
+    setTimeout(function(){currentAccount.movements.push(amount);
 
     // Add loan date
-currentAccount.movementsDates.push(new Date().toISOString());
+    currentAccount.movementsDates.push(new Date().toISOString());
 
 
-    updateUI(currentAccount);
+    updateUI(currentAccount)
+    //reset timer
+clearInterval(timer);
+timer = startLogOutTimer();
+  }, 2500);
   }
   inputLoanAmount.value = '';
   e.preventDefault();
